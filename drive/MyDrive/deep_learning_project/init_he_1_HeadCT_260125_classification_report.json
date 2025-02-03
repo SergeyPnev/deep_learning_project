@@ -1,0 +1,31 @@
+{
+    "HeadCT": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 1000
+    },
+    "ChestCT": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 1000
+    },
+    "accuracy": 1.0,
+    "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 2000
+    },
+    "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 2000
+    },
+    "gradients_expectation": 8.533352229278535e-06,
+    "gradients_variance": 8.025986062420998e-07,
+    "weights_expectation": 0.00012081351451342925,
+    "weights_variance": 0.00030346191488206387
+}

@@ -1,0 +1,31 @@
+{
+    "HeadCT": {
+        "precision": 1.0,
+        "recall": 0.993,
+        "f1-score": 0.9964877069744105,
+        "support": 1000
+    },
+    "ChestCT": {
+        "precision": 0.9930486593843099,
+        "recall": 1.0,
+        "f1-score": 0.9965122072745392,
+        "support": 1000
+    },
+    "accuracy": 0.9965,
+    "macro avg": {
+        "precision": 0.9965243296921549,
+        "recall": 0.9964999999999999,
+        "f1-score": 0.9964999571244748,
+        "support": 2000
+    },
+    "weighted avg": {
+        "precision": 0.9965243296921549,
+        "recall": 0.9965,
+        "f1-score": 0.9964999571244748,
+        "support": 2000
+    },
+    "gradients_expectation": 8.661478204885498e-06,
+    "gradients_variance": 2.2854301562347246e-07,
+    "weights_expectation": 9.728813165565953e-05,
+    "weights_variance": 0.0005189157673157752
+}
