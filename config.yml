@@ -1,0 +1,5 @@
+model : 'simple'
+optim : 'Adagrad'
+init : 'uniform'
+unbalance : 0
+epochs: 10

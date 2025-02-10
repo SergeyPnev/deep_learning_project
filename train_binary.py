@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import transforms
 import torchvision.models as models
+from torchsummary import summary
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -172,6 +173,7 @@ def main(init_list, ratios, val_loader, test_loader, num_class):
 
                 training_images = np.concatenate([hand_files[:head_length], chest_files[:chest_length]])
                 training_labels = [0] * head_length + [1] * chest_length
+
                 training_data = list(zip(training_images, training_labels))
                 train_dataset = MedNISTDataset(training_data, train_transforms)
                 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=torch.cuda.is_available())
@@ -184,116 +186,117 @@ def main(init_list, ratios, val_loader, test_loader, num_class):
                     model = SimpleCNN(num_classes=2)
 
                 model = init(model)
-                model = torch.compile(model)
+#                 model = torch.compile(model)
                 model.to(device)
+                summary(model, (1, 64, 64))
                 loss_function = torch.nn.CrossEntropyLoss()
-                optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0)
+                optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0)
 
-                for epoch in range(max_epochs):
-                    print("-" * 10)
-                    print(f"epoch {epoch + 1}/{max_epochs}")
-                    model.train()
-                    epoch_loss = 0
-                    step = 0
-
-                    for batch_idx, (data, target) in enumerate(train_loader):
-                        data = data.to(device)
-                        target = target.to(device)
-
-                        optimizer.zero_grad()
-                        output = model(data)
-                        loss = loss_function(output, target)
-                        loss.backward()
-
-                        gradients = []
-                        for param in model.parameters():
-                            if param.grad is not None:
-                                gradients.append(param.grad.view(-1))
-                        gradients_values.append(torch.cat(gradients).cpu().detach().numpy())
-
-                        weights = []
-                        for param in model.parameters():
-                            weights.append(param.view(-1))
-                        weights_values.append(torch.cat(weights).cpu().detach().numpy())
-
-                        optimizer.step()
-                        epoch_loss += loss.item()
-                        step += 1
-
-                    epoch_loss /= step
-                    epoch_loss_values.append(epoch_loss)
-
-                    model.eval()
-                    y_true, y_pred = [], []
-                    with torch.no_grad():
-                        for val_data, val_target in val_loader:
-                            val_data = val_data.to(device)
-                            val_target = val_target.to(device)
-                            val_output = F.softmax(model(val_data))
-                            val_pred = (val_output > 0.5).float()
-                            y_true.extend(val_target.cpu().numpy())
-                            y_pred.extend(val_pred.cpu().numpy())
-
-                    y_pred = [np.argmax(i) for i in y_pred]
-                    accuracy = sklearn.metrics.accuracy_score(y_true, y_pred)
-                    precision = sklearn.metrics.precision_score(y_true, y_pred)
-                    recall = sklearn.metrics.recall_score(y_true, y_pred)
-                    f1 = sklearn.metrics.f1_score(y_true, y_pred)
-
-                    evaluation_metrics["accuracy"].append(accuracy)
-                    evaluation_metrics["precision"].append(precision)
-                    evaluation_metrics["recall"].append(recall)
-                    evaluation_metrics["f1"].append(f1)
-
-                    print(f"Validation Accuracy: {accuracy:.4f}, Precision: {precision:.4f}, Recall: {recall:.4f}, F1: {f1:.4f}")
-
-                model.eval()
-                y_true, y_pred = [], []
-                with torch.no_grad():
-                    for test_data, test_target in test_loader:
-                        test_data = test_data.to(device)
-                        test_target = test_target.to(device)
-                        test_output = F.softmax(model(test_data))
-                        test_pred = (test_output > 0.5).float()
-                        y_true.extend(test_target.cpu().numpy())
-                        y_pred.extend(test_pred.cpu().numpy())
-
-                y_pred = [np.argmax(i) for i in y_pred]
-                test_accuracy = sklearn.metrics.accuracy_score(y_true, y_pred)
-                test_precision = sklearn.metrics.precision_score(y_true, y_pred)
-                test_recall = sklearn.metrics.recall_score(y_true, y_pred)
-                test_f1 = sklearn.metrics.f1_score(y_true, y_pred)
-
-                gradients_values = np.array(gradients_values)
-                weights_values = np.array(weights_values)
-                gradients_expectation = gradients_values.mean()
-                gradients_variance = gradients_values.var()
-                weights_expectation = weights_values.mean()
-                weights_variance = weights_values.var()
-
-                print("Test Results:")
-                print(f"Accuracy: {test_accuracy:.4f}, Precision: {test_precision:.4f}, Recall: {test_recall:.4f}, F1: {test_f1:.4f}")
-                print(f"Gradients Expectation: {gradients_expectation:.4e}\n")
-                print(f"Gradients Variance: {gradients_variance:.4e}\n")
-                print(f"Weights Expectation: {weights_expectation:.4e}\n")
-                print(f"Weights Variance: {weights_variance:.4e}\n")
-
-                report_dict = classification_report(y_true, y_pred, target_names=["HeadCT", "ChestCT"], output_dict=True)
-                report_dict["gradients_expectation"] = gradients_expectation
-                report_dict["gradients_variance"] = gradients_variance
-                report_dict["weights_expectation"] = weights_expectation
-                report_dict["weights_variance"] = weights_variance
-
-                experiment_name = f"{init.__name__}_{ratio}_{leading_class}_260125"
-                save_path = project_root
-                #os.makedirs(save_path, exist_ok=True)
-
-                with open(save_path + f"/{experiment_name}_classification_report.json", "w") as f:
-                    print("saved to: ", save_path + f"/{experiment_name}_classification_report.json")
-                    json.dump(report_dict, f, indent=4, default=convert_to_serializable)
-
-                torch.cuda.empty_cache()
-                gc.collect()
+#                 for epoch in range(max_epochs):
+#                     print("-" * 10)
+#                     print(f"epoch {epoch + 1}/{max_epochs}")
+#                     model.train()
+#                     epoch_loss = 0
+#                     step = 0
+#
+#                     for batch_idx, (data, target) in enumerate(train_loader):
+#                         data = data.to(device)
+#                         target = target.to(device)
+#
+#                         optimizer.zero_grad()
+#                         output = model(data)
+#                         loss = loss_function(output, target)
+#                         loss.backward()
+#
+#                         gradients = []
+#                         for param in model.parameters():
+#                             if param.grad is not None:
+#                                 gradients.append(param.grad.view(-1))
+#                         gradients_values.append(torch.cat(gradients).cpu().detach().numpy())
+#
+#                         weights = []
+#                         for param in model.parameters():
+#                             weights.append(param.view(-1))
+#                         weights_values.append(torch.cat(weights).cpu().detach().numpy())
+#
+#                         optimizer.step()
+#                         epoch_loss += loss.item()
+#                         step += 1
+#
+#                     epoch_loss /= step
+#                     epoch_loss_values.append(epoch_loss)
+#
+#                     model.eval()
+#                     y_true, y_pred = [], []
+#                     with torch.no_grad():
+#                         for val_data, val_target in val_loader:
+#                             val_data = val_data.to(device)
+#                             val_target = val_target.to(device)
+#                             val_output = F.softmax(model(val_data))
+#                             val_pred = (val_output > 0.5).float()
+#                             y_true.extend(val_target.cpu().numpy())
+#                             y_pred.extend(val_pred.cpu().numpy())
+#
+#                     y_pred = [np.argmax(i) for i in y_pred]
+#                     accuracy = sklearn.metrics.accuracy_score(y_true, y_pred)
+#                     precision = sklearn.metrics.precision_score(y_true, y_pred)
+#                     recall = sklearn.metrics.recall_score(y_true, y_pred)
+#                     f1 = sklearn.metrics.f1_score(y_true, y_pred)
+#
+#                     evaluation_metrics["accuracy"].append(accuracy)
+#                     evaluation_metrics["precision"].append(precision)
+#                     evaluation_metrics["recall"].append(recall)
+#                     evaluation_metrics["f1"].append(f1)
+#
+#                     print(f"Validation Accuracy: {accuracy:.4f}, Precision: {precision:.4f}, Recall: {recall:.4f}, F1: {f1:.4f}")
+#
+#                 model.eval()
+#                 y_true, y_pred = [], []
+#                 with torch.no_grad():
+#                     for test_data, test_target in test_loader:
+#                         test_data = test_data.to(device)
+#                         test_target = test_target.to(device)
+#                         test_output = F.softmax(model(test_data))
+#                         test_pred = (test_output > 0.5).float()
+#                         y_true.extend(test_target.cpu().numpy())
+#                         y_pred.extend(test_pred.cpu().numpy())
+#
+#                 y_pred = [np.argmax(i) for i in y_pred]
+#                 test_accuracy = sklearn.metrics.accuracy_score(y_true, y_pred)
+#                 test_precision = sklearn.metrics.precision_score(y_true, y_pred)
+#                 test_recall = sklearn.metrics.recall_score(y_true, y_pred)
+#                 test_f1 = sklearn.metrics.f1_score(y_true, y_pred)
+#
+#                 gradients_values = np.array(gradients_values)
+#                 weights_values = np.array(weights_values)
+#                 gradients_expectation = gradients_values.mean()
+#                 gradients_variance = gradients_values.var()
+#                 weights_expectation = weights_values.mean()
+#                 weights_variance = weights_values.var()
+#
+#                 print("Test Results:")
+#                 print(f"Accuracy: {test_accuracy:.4f}, Precision: {test_precision:.4f}, Recall: {test_recall:.4f}, F1: {test_f1:.4f}")
+#                 print(f"Gradients Expectation: {gradients_expectation:.4e}\n")
+#                 print(f"Gradients Variance: {gradients_variance:.4e}\n")
+#                 print(f"Weights Expectation: {weights_expectation:.4e}\n")
+#                 print(f"Weights Variance: {weights_variance:.4e}\n")
+#
+#                 report_dict = classification_report(y_true, y_pred, target_names=["HeadCT", "ChestCT"], output_dict=True)
+#                 report_dict["gradients_expectation"] = gradients_expectation
+#                 report_dict["gradients_variance"] = gradients_variance
+#                 report_dict["weights_expectation"] = weights_expectation
+#                 report_dict["weights_variance"] = weights_variance
+#
+#                 experiment_name = f"{init.__name__}_{ratio}_{leading_class}_260125"
+#                 save_path = project_root
+#                 #os.makedirs(save_path, exist_ok=True)
+#
+#                 with open(save_path + f"/{experiment_name}_classification_report.json", "w") as f:
+#                     print("saved to: ", save_path + f"/{experiment_name}_classification_report.json")
+#                     json.dump(report_dict, f, indent=4, default=convert_to_serializable)
+#
+#                 torch.cuda.empty_cache()
+#                 gc.collect()
 
 
 if __name__ == "__main__":
@@ -335,7 +338,8 @@ if __name__ == "__main__":
     print(f"Label names: {class_names}")
     print(f"Label counts: {num_each}")
 
-    hand = os.path.join(data_dir, 'HeadCT')
+#     hand = os.path.join(data_dir, 'HeadCT')
+    hand = os.path.join(data_dir, 'AbdomenCT')
     chest = os.path.join(data_dir, 'ChestCT')
 
     hand_files = np.array([os.path.join(hand, x) for x in os.listdir(hand)])

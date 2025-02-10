@@ -1,31 +1,31 @@
 {
     "HeadCT": {
-        "precision": 1.0,
-        "recall": 0.999,
-        "f1-score": 0.9994997498749374,
+        "precision": 0.931,
+        "recall": 0.931,
+        "f1-score": 0.931,
         "support": 1000
     },
     "ChestCT": {
-        "precision": 0.999000999000999,
-        "recall": 1.0,
-        "f1-score": 0.9995002498750626,
+        "precision": 0.931,
+        "recall": 0.931,
+        "f1-score": 0.931,
         "support": 1000
     },
-    "accuracy": 0.9995,
+    "accuracy": 0.931,
     "macro avg": {
-        "precision": 0.9995004995004995,
-        "recall": 0.9995,
-        "f1-score": 0.999499999875,
+        "precision": 0.931,
+        "recall": 0.931,
+        "f1-score": 0.931,
         "support": 2000
     },
     "weighted avg": {
-        "precision": 0.9995004995004995,
-        "recall": 0.9995,
-        "f1-score": 0.9994999998749999,
+        "precision": 0.931,
+        "recall": 0.931,
+        "f1-score": 0.931,
         "support": 2000
     },
-    "gradients_expectation": 1.1242272194067482e-05,
-    "gradients_variance": 7.447046073139063e-07,
-    "weights_expectation": 0.00011172316590091214,
-    "weights_variance": 0.00030359820812009275
+    "gradients_expectation": 6.0756296988984104e-06,
+    "gradients_variance": 1.126431925513316e-06,
+    "weights_expectation": 8.18858970887959e-05,
+    "weights_variance": 0.0034386301413178444
 }
